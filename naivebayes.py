@@ -2,23 +2,38 @@
 import collections
 import nltk.metrics
 import nltk.classify.util
-import cPickle as pickle
+import cPickle
+
 
 class NBSentimentClassifier(object):
-    
+
+    # def run_test(self,testfeats):
+    #     #Discard for probabilities in MIN_THRESHOLD to MAX_THRESHOLD range, to increase the precision.
+    #     valid_feats=self.get_in_threshold_features(testfeats)
+    #     accuracy = nltk.classify.util.accuracy(self.classifier, valid_feats)
+    #     print 'Tested on %d instances, Accuracy: %f' % (len(valid_feats),accuracy)
+    #     print "================================================================="
+    #     print ""
+
+    # # def train_data(self):
+    # #     super(NBThresholdClassifier, self).train_data()
+    # #     ##Retrain the model to disregrad the posts from MIN_THRESHOLD to MAX_THRESHOLD_RANGE 
+    # #     posfeats = pickle.load(open('positive_train.pickle'))
+    # #     negfeats = pickle.load(open('negative_train.pickle'))
+    # #     valid_feats = self.get_in_threshold_features(posfeats+negfeats)
+    # #     self.classifier = NaiveBayesClassifier.train(valid_feats)
+        
+    # def get_in_threshold_features(self,features):
+    #     in_range_features = []
+    #     for feat in features:
+    #         if not(MIN_THRESHOLD <= self.classifier.prob_classify(feat[0]).prob('pos') <= MAX_THRESHOLD):
+    #             in_range_features.append(feat)
+    #     return in_range_features
+
     def __init__(self):
         #Train the Model
-        
-        self.populate_config()
-        self.train_data()
-        self.__create_test_feats()
-    
-    def populate_config(self):
-        ##Cheap way of handling different configurations:
-        self.PICKLE_FILES_DICT = {'classifier':'nbClassifier.pickle',
-                                  'positive_test':'positive_test.pickle',
-                                  'negative_test': 'negative_test.pickle'}
-
+        self.load_train_data()
+        self.load_test_data()
 
     def run_test_pos(self):
         print "Testing positive feature sets alone."
@@ -56,12 +71,12 @@ class NBSentimentClassifier(object):
                   len(self.posfeats)+len(self.negfeats)-len(testsets['pos'])-len(testsets['neg']))
 
  
-    def train_data(self):
-        self.classifier = pickle.load(open(self.PICKLE_FILES_DICT['classifier']))
+    def load_train_data(self):
+        self.classifier = cPickle.load(open('nbClassifier.pickle'))
         
-    def __create_test_feats(self):
-        self.posfeats = pickle.load(open(self.PICKLE_FILES_DICT['positive_test']))
-        self.negfeats = pickle.load(open(self.PICKLE_FILES_DICT['negative_test']))
+    def load_test_data(self):
+        self.posfeats = cPickle.load(open('positive_test.pickle'))
+        self.negfeats = cPickle.load(open('negative_test.pickle'))
 
     def run_test(self,testfeats):
         accuracy = nltk.classify.util.accuracy(self.classifier, testfeats)
