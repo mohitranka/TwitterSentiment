@@ -5,8 +5,8 @@ from nltk.classify import NaiveBayesClassifier
 import nltk.data 
 from nltk.corpus import movie_reviews
 import re
+from nltk.tag import pos_tag
 
-STOP_WORDS = pickle.load(open('stopwords.pickle'))
 # Strip urls
 URL_REGEX = re.compile(r'''(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))''',re.I) #http://daringfireball.net/2010/07/improved_regex_for_matching_urls  
 
@@ -20,35 +20,42 @@ USER_REGEX = re.compile(r'@\w+?',re.I)
 TRAIN_DATASET_LOC = 'corpora/tweets_train'
 TEST_DATASET_LOC = 'corpora/tweets_test'
 
-def __word_feats(words):
-	#words = [word.lower() for word in words if word not in STOP_WORDS]
-        #words = [word for word in words if not URL_REGEX.match(word)]
-        #words = [word for word in words if not PUNCT_REGEX.match(word)]
-        #words = [word for word in words if not USER_REGEX.match(word)]
-    return dict([(word.lower(), True) for word in words])
-    
-def __word_feats_pos(words):
-        #words = [word.lower() for word in words if word not in STOP_WORDS]
-        #words = [word for word in words if not URL_REGEX.match(word)]
-        #words = [word for word in words if not PUNCT_REGEX.match(word)]
-        #words = [word for word in words if not USER_REGEX.match(word)]
-    return dict([(word.lower(), True) for word in words])
-        
-def __word_feats_neg(words):
-        #words = [word.lower() for word in words if word not in STOP_WORDS]
-        #words = [word for word in words if not URL_REGEX.match(word)]
-        #words = [word for word in words if not PUNCT_REGEX.match(word)]
-        #words = [word for word in words if not USER_REGEX.match(word)]
-    return dict([(word.lower(), True) for word in words])
+pos_tags={}
 
-def create_stopwords():
+def __getPosTags(word):
+    if not pos_tags.has_key(word):
+        pos_tags[word]=nltk.tag.pos_tag([word])[0][0]
+    return pos_tags[word]
+    
+def __word_feats(words,tagged):
+    if tagged:
+        return dict([(word.lower(), True) for word in words if __getPosTags(word) not in ('NN','DT','PRP')])
+    else:
+        return dict([(word.lower(), True) for word in words])
+    
+def __word_feats_pos(words,tagged):
+    return __word_feats(words,tagged)
+        
+def __word_feats_neg(words,tagged):
+    return __word_feats(words,tagged)
+
+def create_stopwords(tagged):
     print "Recreating stop word pickles."
-    f = open('stopwords.pickle','w')
-    f.write(pickle.dumps(stopwords.words()))
-    f.close()
+    if tagged:
+        file_name = 'stopwords.pickle.tagged'
+        words = [word for word in stopwords.words() if __getPosTags(word) not in ('NN','DT','PRP')]
+    else:
+        file_name = 'stopwords.pickle'
+        words = stopwords.words()
+    __write_file(file_name,pickle.dumps(words))
     print "Done!"
 
-def create_test_pickles():
+def __write_file(file_name,pickle_dump):
+    f=open(file_name,'w')
+    f.write(pickle_dump)
+    f.close()
+
+def create_test_pickles(tagged):
     print "Recreating test data pickles"
     test_dir = nltk.data.find(TEST_DATASET_LOC)
     test_data = nltk.corpus.CategorizedPlaintextCorpusReader(test_dir, fileids='.*\.txt',cat_pattern="(pos|neg)")
@@ -57,19 +64,21 @@ def create_test_pickles():
     negids = test_data.fileids('neg')
     posids = test_data.fileids('pos')
 
-    negfeats = [(__word_feats(test_data.words(fileids=[f])), 'neg') for f in negids]
-    posfeats = [(__word_feats(test_data.words(fileids=[f])), 'pos') for f in posids]
+    negfeats = [(__word_feats(test_data.words(fileids=[f]),tagged), 'neg') for f in negids]
+    posfeats = [(__word_feats(test_data.words(fileids=[f]),tagged), 'pos') for f in posids]
     
-    f = open('positive_test.pickle','w')
-    f.write(pickle.dumps(posfeats))
-    f.close()
-    
-    f = open('negative_test.pickle','w')
-    f.write(pickle.dumps(negfeats))
-    f.close()
+    if tagged:
+        pos_file_name = 'positive_test.pickle.tagged'
+        neg_file_name = 'negative_test.pickle.tagged'
+    else:
+        pos_file_name = 'positive_test.pickle'
+        neg_file_name = 'negative_test.pickle'
+
+    __write_file(pos_file_name,pickle.dumps(posfeats))
+    __write_file(neg_file_name,pickle.dumps(negfeats))
     print "Done!"
 
-def create_train_classifier():
+def create_train_classifier(tagged):
     print "Recreating training classifier"
     corpus_dir = nltk.data.find(TRAIN_DATASET_LOC)
     train_data = nltk.corpus.CategorizedPlaintextCorpusReader(corpus_dir, fileids='.*\.txt',cat_pattern="(pos|neg)")
@@ -81,31 +90,42 @@ def create_train_classifier():
     negids_movies = movie_reviews.fileids('neg')
     posids_movies = movie_reviews.fileids('pos')
 
-    negfeats = [(__word_feats_neg(train_data.words(fileids=[f])), 'neg') for f in negids_train]
-    posfeats = [(__word_feats_pos(train_data.words(fileids=[f])), 'pos') for f in posids_train]
+    negfeats = [(__word_feats_neg(train_data.words(fileids=[f]),tagged), 'neg') for f in negids_train]
+    posfeats = [(__word_feats_pos(train_data.words(fileids=[f]),tagged), 'pos') for f in posids_train]
 
-    negfeats.extend([(__word_feats_neg(movie_reviews.words(fileids=[f])), 'neg') for f in negids_movies])
-    posfeats.extend([(__word_feats_pos(movie_reviews.words(fileids=[f])), 'pos') for f in posids_movies])
+    negfeats.extend([(__word_feats_neg(movie_reviews.words(fileids=[f]),tagged), 'neg') for f in negids_movies])
+    posfeats.extend([(__word_feats_pos(movie_reviews.words(fileids=[f]),tagged), 'pos') for f in posids_movies])
 
     trainfeats = negfeats + posfeats
 
     classifier = NaiveBayesClassifier.train(trainfeats)
     
-    f = open('nbClassifier.pickle','w')
-    f.write(pickle.dumps(classifier))
-    f.close()
+    if tagged:
+        pos_file_name = 'positive_train.pickle.tagged'
+        neg_file_name = 'negative_train.pickle.tagged'
+        class_file_name = 'nbClassifier.pickle.tagged'
+    else:
+        pos_file_name = 'positive_train.pickle'
+        neg_file_name = 'negative_train.pickle'
+        class_file_name = 'nbClassifier.pickle'
+    
+    __write_file(pos_file_name,pickle.dumps(posfeats))
+    __write_file(neg_file_name,pickle.dumps(negfeats))
+    __write_file(class_file_name,pickle.dumps(classifier))
     print "Done!"
 
 if __name__ == '__main__':
     #TODO add Option parse
     import sys
-
+    tagged = False
+    if 'tagged' in sys.argv[1:]:
+        tagged=True
     #Make sure to create stop_words before anything else.
     if 'stop_words' in sys.argv[1:]:
-        create_stopwords()
+        create_stopwords(tagged)
 
     if 'classifier' in sys.argv[1:]:
-        create_train_classifier()
+        create_train_classifier(tagged)
     if 'test_pickles' in sys.argv[1:]:
-        create_test_pickles()    
+        create_test_pickles(tagged)    
     

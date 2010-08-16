@@ -41,8 +41,8 @@ class NBSentimentClassifier(object):
         print 'neg recall:', nltk.metrics.recall(refsets['neg'], testsets['neg'])
         print 'neg F-measure:', nltk.metrics.f_measure(refsets['neg'], testsets['neg'])
 
-        print "Total Documents:%d Positive Documents:%d Negative Documents:%d"\
-            %(len(refsets['pos'])+len(refsets['neg']),len(testsets['pos']),len(testsets['neg']))
+        print "Total Documents:%d Positive Documents:%d(%d) Negative Documents:%d(%d)"\
+            %(len(refsets['pos'])+len(refsets['neg']),len(testsets['pos']),len(self.posfeats),len(testsets['neg']),len(self.negfeats))
 
  
     def train_data(self):
