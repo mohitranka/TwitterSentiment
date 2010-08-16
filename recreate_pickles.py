@@ -7,6 +7,7 @@ from nltk.corpus import movie_reviews
 import re
 from nltk.tag import pos_tag
 
+STOP_WORDS = pickle.load(open('stopwords.pickle'))
 # Strip urls
 URL_REGEX = re.compile(r'''(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))''',re.I) #http://daringfireball.net/2010/07/improved_regex_for_matching_urls  
 
@@ -22,6 +23,10 @@ TEST_DATASET_LOC = 'corpora/tweets_test'
 
 POS_TAGS={}
 
+SMILIES = (':)',':-)',':D',':-D',';D',';)',';-)',';-D',':(',':-(',';(',';-(',':O')
+
+ALLOWED_POS_TAGS = ('JJ', 'JJR','JJS', 'RB', 'RBR', 'RBS') 
+
 def __getPosTags(word):
     if not POS_TAGS.has_key(word):
         POS_TAGS[word]=nltk.tag.pos_tag([word])[0][1]
@@ -29,9 +34,9 @@ def __getPosTags(word):
     
 def __word_feats(words,tagged):
     if tagged:
-        return dict([(word.lower(), True) for word in words if __getPosTags(word) not in ('NN','DT','PRP','NNS')])
+        return dict([(word.lower(), True) for word in words if word not in STOP_WORDS and word in SMILIES or __getPosTags(word) in ALLOWED_POS_TAGS])
     else:
-        return dict([(word.lower(), True) for word in words])
+        return dict([(word.lower(), True) for word in words if word not in STOP_WORDS])
     
 def __word_feats_pos(words,tagged):
     return __word_feats(words,tagged)
@@ -39,14 +44,10 @@ def __word_feats_pos(words,tagged):
 def __word_feats_neg(words,tagged):
     return __word_feats(words,tagged)
 
-def create_stopwords(tagged):
+def create_stopwords():
     print "Recreating stop word pickles."
-    if tagged:
-        file_name = 'stopwords.pickle.tagged'
-        words = [word for word in stopwords.words() if __getPosTags(word) not in ('NN','DT','PRP','NNS')]
-    else:
-        file_name = 'stopwords.pickle'
-        words = stopwords.words()
+    file_name = 'stopwords.pickle'
+    words = stopwords.words()
     __write_file(file_name,pickle.dumps(words))
     print "Done!"
 
@@ -122,7 +123,7 @@ if __name__ == '__main__':
         tagged=True
     #Make sure to create stop_words before anything else.
     if 'stop_words' in sys.argv[1:]:
-        create_stopwords(tagged)
+        create_stopwords()
 
     if 'classifier' in sys.argv[1:]:
         create_train_classifier(tagged)
