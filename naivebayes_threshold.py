@@ -8,6 +8,12 @@ MIN_THRESHOLD = 0.37
 MAX_THRESHOLD = 0.63
 
 class NBThresholdClassifier(NBSentimentClassifier):        
+    def populate_config(self):
+        ##Cheap way of handling different configurations:
+        self.PICKLE_FILES_DICT = {'classifier':'nbClassifier.pickle',
+                                  'positive_test':'positive_test.pickle',
+                                  'negative_test': 'negative_test.pickle'}
+
     def run_test(self,testfeats):
         #Discard for probabilities in MIN_THRESHOLD to MAX_THRESHOLD range, to increase the precision.
         valid_feats=self.get_in_threshold_features(testfeats)

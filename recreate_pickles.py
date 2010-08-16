@@ -20,16 +20,16 @@ USER_REGEX = re.compile(r'@\w+?',re.I)
 TRAIN_DATASET_LOC = 'corpora/tweets_train'
 TEST_DATASET_LOC = 'corpora/tweets_test'
 
-pos_tags={}
+POS_TAGS={}
 
 def __getPosTags(word):
-    if not pos_tags.has_key(word):
-        pos_tags[word]=nltk.tag.pos_tag([word])[0][0]
-    return pos_tags[word]
+    if not POS_TAGS.has_key(word):
+        POS_TAGS[word]=nltk.tag.pos_tag([word])[0][1]
+    return POS_TAGS[word]
     
 def __word_feats(words,tagged):
     if tagged:
-        return dict([(word.lower(), True) for word in words if __getPosTags(word) not in ('NN','DT','PRP')])
+        return dict([(word.lower(), True) for word in words if __getPosTags(word) not in ('NN','DT','PRP','NNS')])
     else:
         return dict([(word.lower(), True) for word in words])
     
@@ -43,7 +43,7 @@ def create_stopwords(tagged):
     print "Recreating stop word pickles."
     if tagged:
         file_name = 'stopwords.pickle.tagged'
-        words = [word for word in stopwords.words() if __getPosTags(word) not in ('NN','DT','PRP')]
+        words = [word for word in stopwords.words() if __getPosTags(word) not in ('NN','DT','PRP','NNS')]
     else:
         file_name = 'stopwords.pickle'
         words = stopwords.words()

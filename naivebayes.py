@@ -8,9 +8,18 @@ class NBSentimentClassifier(object):
     
     def __init__(self):
         #Train the Model
+        
+        self.populate_config()
         self.train_data()
         self.__create_test_feats()
     
+    def populate_config(self):
+        ##Cheap way of handling different configurations:
+        self.PICKLE_FILES_DICT = {'classifier':'nbClassifier.pickle',
+                                  'positive_test':'positive_test.pickle',
+                                  'negative_test': 'negative_test.pickle'}
+
+
     def run_test_pos(self):
         print "Testing positive feature sets alone."
         self.run_test(self.posfeats)
@@ -46,11 +55,11 @@ class NBSentimentClassifier(object):
 
  
     def train_data(self):
-        self.classifier = pickle.load(open('nbClassifier.pickle'))
-
+        self.classifier = pickle.load(open(self.PICKLE_FILES_DICT['classifier']))
+        
     def __create_test_feats(self):
-        self.posfeats = pickle.load(open('positive_test.pickle'))
-        self.negfeats = pickle.load(open('negative_test.pickle'))
+        self.posfeats = pickle.load(open(self.PICKLE_FILES_DICT['positive_test']))
+        self.negfeats = pickle.load(open(self.PICKLE_FILES_DICT['negative_test']))
 
     def run_test(self,testfeats):
         accuracy = nltk.classify.util.accuracy(self.classifier, testfeats)
