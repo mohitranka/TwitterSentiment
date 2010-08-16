@@ -83,14 +83,14 @@ def create_train_classifier():
     negids_train = train_data.fileids('neg')
     posids_train = train_data.fileids('pos')
         
-    negids_movies = movie_reviews.fileids('neg')
-    posids_movies = movie_reviews.fileids('pos')
+    # negids_movies = movie_reviews.fileids('neg')
+    # posids_movies = movie_reviews.fileids('pos')
 
     negfeats = [(__word_feats_neg(train_data.words(fileids=[f])), 'neg') for f in negids_train]
     posfeats = [(__word_feats_pos(train_data.words(fileids=[f])), 'pos') for f in posids_train]
 
-    negfeats.extend([(__word_feats_neg(movie_reviews.words(fileids=[f])), 'neg') for f in negids_movies])
-    posfeats.extend([(__word_feats_pos(movie_reviews.words(fileids=[f])), 'pos') for f in posids_movies])
+    # negfeats.extend([(__word_feats_neg(movie_reviews.words(fileids=[f])), 'neg') for f in negids_movies])
+    # posfeats.extend([(__word_feats_pos(movie_reviews.words(fileids=[f])), 'pos') for f in posids_movies])
 
     trainfeats = negfeats + posfeats
 
