@@ -6,8 +6,8 @@ import nltk.data
 from nltk.corpus import movie_reviews
 import re
 from nltk.tag import pos_tag
-
-STOP_WORDS = cPickle.load(open('stopwords.pickle'))
+import os
+STOP_WORDS = cPickle.load(open('pickles'+os.sep+'stopwords.pickle'))
 # Strip urls
 URL_REGEX = re.compile(r'''(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))''',re.I) #http://daringfireball.net/2010/07/improved_regex_for_matching_urls  
 
@@ -45,7 +45,7 @@ def __word_feats_neg(words):
 
 def create_stopwords():
     print "Recreating stop word pickles."
-    file_name = 'stopwords.pickle'
+    file_name = 'pickles'+os.sep+'stopwords.pickle'
     words = stopwords.words()
     __write_file(file_name,cPickle.dumps(words))
     print "Done!"
@@ -67,8 +67,8 @@ def create_test_pickles():
     negfeats = [(__word_feats(test_data.words(fileids=[f])), 'neg') for f in negids]
     posfeats = [(__word_feats(test_data.words(fileids=[f])), 'pos') for f in posids]
     
-    pos_file_name = 'positive_test.pickle'
-    neg_file_name = 'negative_test.pickle'
+    pos_file_name = 'pickles'+os.sep+'positive_test.pickle'
+    neg_file_name = 'pickles'+os.sep+'negative_test.pickle'
 
     __write_file(pos_file_name,cPickle.dumps(posfeats))
     __write_file(neg_file_name,cPickle.dumps(negfeats))
@@ -96,9 +96,9 @@ def create_train_classifier():
 
     classifier = NaiveBayesClassifier.train(trainfeats)
     
-    pos_file_name = 'positive_train.pickle'
-    neg_file_name = 'negative_train.pickle'
-    class_file_name = 'nbClassifier.pickle'
+    pos_file_name = 'pickles'+os.sep+'positive_train.pickle'
+    neg_file_name = 'pickles'+os.sep+'negative_train.pickle'
+    class_file_name = 'pickles'+os.sep+'nbClassifier.pickle'
     
     __write_file(pos_file_name,cPickle.dumps(posfeats))
     __write_file(neg_file_name,cPickle.dumps(negfeats))

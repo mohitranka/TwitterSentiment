@@ -1,0 +1,17 @@
+Testing positive feature sets alone.
+Tested on 211 instances, Accuracy: 0.844560
+=================================================================
+Testing negative feature sets alone.
+Tested on 38 instances, Accuracy: 0.783784
+=================================================================
+Testing all feature sets.
+Tested on 249 instances, Accuracy: 0.834783
+=================================================================
+Printing all stats.
+pos precision:0.953216
+pos recall:0.844560
+pos F-measure:0.895604
+neg precision:0.491525
+neg recall:0.783784
+neg F-measure:0.604167
+Documents- Total:230 Positive:171(211) Negative:59(38) Unclassified:19
